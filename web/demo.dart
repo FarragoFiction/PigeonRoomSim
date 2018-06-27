@@ -103,7 +103,9 @@ abstract class Demo {
 
         // Clear the animation panel and draw new frame.
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        if(DEBUG)world.drawDebugData();
+        if(DEBUG) {
+            world.drawDebugData();
+        }
         frameCount++;
 
         window.requestAnimationFrame(step);

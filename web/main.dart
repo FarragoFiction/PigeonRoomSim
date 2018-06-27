@@ -6,6 +6,7 @@ import 'package:box2d/box2d.dart';
 import "package:DollLibCorrect/DollRenderer.dart";
 
 int type = 113;
+int spriteSize = 100;
 
 List<CanvasElement> birbs;
 
@@ -22,7 +23,7 @@ Future<Null>main() async {
 
 
   pigeon.initialize();
-  pigeon.DEBUG = false;
+  pigeon.DEBUG = true;
 
   pigeon.initializeAnimation();
   pigeon.runAnimation();
@@ -30,7 +31,7 @@ Future<Null>main() async {
   ButtonElement box = new ButtonElement()..text = "Spawn Birb";
   querySelector("#output").append(box);
   box.onClick.listen((Event e) {
-    pigeon.createBox();
+    pigeon.createBox(e.x, e.y);
   });
   pigeon.canvas.onClick.listen((Event e) => pigeon.createBox());
   pigeon.canvas.style.marginLeft = "auto";
@@ -74,9 +75,12 @@ Future<List<CanvasElement>> initBirbs() async {
     Doll doll = Doll.randomDollOfType(type);
     CanvasElement canvas = new CanvasElement(width:doll.width, height:doll.height);
     await DollRenderer.drawDoll(canvas,doll);
-    CanvasElement finalCanvas = new CanvasElement(width:64, height:65);
+    CanvasElement finalCanvas = new CanvasElement(width:spriteSize, height:spriteSize);
     await Renderer.cropToVisible(canvas);
     await Renderer.drawToFitCentered(finalCanvas, canvas);
+    //crop again after resizing
+    await Renderer.cropToVisible(finalCanvas);
+
     ret.add(finalCanvas);
     print("drew $doll");
     stats.text = "Loaded $i dolls of type $type";
@@ -105,7 +109,7 @@ class PigeonDemo extends Demo {
   @override
   void step(num timestamp) {
     super.step(timestamp);
-    canvas.context2D.drawImage(bg, 0,0);
+   if(!DEBUG) canvas.context2D.drawImage(bg, 0,0);
     // ignore: conflicting_dart_import
     for(Body b in bodies) {
       if(b.getType() == BodyType.DYNAMIC) {
@@ -154,10 +158,18 @@ class PigeonDemo extends Demo {
     bodies.add(ground);
   }
 
-  void createBox() {
+  void createBox([double x, double y]) {
     // Create shape
-    final PolygonShape shape = new PolygonShape();
-    shape.setAsBox(3.0, 2.5, new Vector2.zero(), Math.PI / 2);
+    final CircleShape shape = new CircleShape();
+    CanvasElement birb = getRandomBirb(bodies.length);
+    double width = 3.0;
+    double height = 2.5;
+    if(viewport != null) {
+      width = birb.width / viewport.scale;
+      height = birb.height / viewport.scale;
+    }
+    shape.radius = width/4;
+    //shape.setAsBox(width, height, new Vector2.zero(), Math.PI / 2);
 
     // Define fixture (links body and shape)
     final FixtureDef activeFixtureDef = new FixtureDef();
@@ -168,7 +180,14 @@ class PigeonDemo extends Demo {
     // Define body
     final BodyDef bodyDef = new BodyDef();
     bodyDef.type = BodyType.DYNAMIC;
-    bodyDef.position = new Vector2(0.0, 30.0);
+    if(x == null) {
+      x = 0.0;
+      y = 30.0;
+    }else {
+      x = x * viewport.scale;
+      y = y * viewport.scale;
+    }
+    bodyDef.position = new Vector2(x, y);
 
     // Create body and fixture from definitions
     final Body fallingBox = world.createBody(bodyDef);
