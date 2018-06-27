@@ -23,7 +23,7 @@ Future<Null>main() async {
 
 
   pigeon.initialize();
-  pigeon.DEBUG = false;
+  pigeon.DEBUG = true;
 
   pigeon.initializeAnimation();
   pigeon.runAnimation();
@@ -97,17 +97,23 @@ Future<List<CanvasElement>> initBirbs() async {
 class PigeonDemo extends Demo {
   List<CanvasElement> birbs;
   ImageElement bg;
+  // ignore: conflicting_dart_import
+  List<Fixture> toDestroy = new List<Fixture>();
+
   PigeonDemo(String name, List<CanvasElement> this.birbs, ImageElement this.bg) : super(name);
 
 
   void initialize() {
     assert(null != world);
+    PigeonListener cl = new PigeonListener(this);
+    world.setContactListener(cl);
     _createGround();
     createBox();
   }
 
   @override
   void step(num timestamp) {
+    processDestruction();
     super.step(timestamp);
    if(!DEBUG) canvas.context2D.drawImage(bg, 0,0);
     // ignore: conflicting_dart_import
@@ -125,6 +131,15 @@ class PigeonDemo extends Demo {
         canvas.context2D.drawImage(birb, -birb.width/2, -birb.width/2);
         canvas.context2D.restore();
       }
+    }
+  }
+
+  //is this enough?
+  void processDestruction() {
+    for(Fixture f in toDestroy) {
+      Body b  = f.getBody();
+      //f.destroy();
+      bodies.remove(b);
     }
   }
 
@@ -184,10 +199,10 @@ class PigeonDemo extends Demo {
       x = 0.0;
       y = 30.0;
     }else {
-      print("before i scale, x is $x and y is $y");
+     // print("before i scale, x is $x and y is $y");
       x = (x - canvas.width+3*birb.width/4)/ viewport.scale;
       y = (canvas.height - y-canvas.height/2+6*birb.height/4) / viewport.scale;
-      print("after i scale, x is $x and y is $y");
+      //print("after i scale, x is $x and y is $y");
     }
     bodyDef.position = new Vector2(x, y);
 
@@ -197,5 +212,41 @@ class PigeonDemo extends Demo {
 
     // Add to list
     bodies.add(fallingBox);
+  }
+}
+
+class PigeonListener extends ContactListener {
+  PigeonDemo demo;
+
+  PigeonListener(PigeonDemo this.demo);
+
+  //if two identical dolls touch, they vanish.
+  @override
+  void beginContact(Contact contact) {
+    Body a = contact.fixtureA.getBody();
+    Body b = contact.fixtureB.getBody();
+    if(a.getType() == BodyType.DYNAMIC && b.getType() == BodyType.DYNAMIC) {
+      CanvasElement dollA = demo.getRandomBirb(demo.bodies.indexOf(a));
+      CanvasElement dollB = demo.getRandomBirb(demo.bodies.indexOf(b));
+      if(dollA != null && dollA == dollB) {
+        demo.toDestroy.add(contact.fixtureA);
+        demo.toDestroy.add(contact.fixtureB);
+      }
+    }
+  }
+
+  @override
+  void endContact(Contact contact) {
+    // TODO: implement endContact
+  }
+
+  @override
+  void postSolve(Contact contact, ContactImpulse impulse) {
+    // TODO: implement postSolve
+  }
+
+  @override
+  void preSolve(Contact contact, Manifold oldManifold) {
+    // TODO: implement preSolve
   }
 }
