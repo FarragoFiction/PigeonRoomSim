@@ -105,9 +105,10 @@ class PigeonDemo extends Demo {
         num y = canvas.height - (b.position.y * viewport.scale) -
             canvas.height / 2 - birb.height / 2;
         canvas.context2D.save();
+        canvas.context2D.translate(x+birb.width/2,y+birb.height/2);
         canvas.context2D.rotate(b.getAngle());
+        canvas.context2D.drawImage(birb, -birb.width/2, -birb.width/2);
         canvas.context2D.restore();
-        canvas.context2D.drawImage(birb, x, y);
       }
     }
   }
