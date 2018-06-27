@@ -23,17 +23,17 @@ Future<Null>main() async {
 
 
   pigeon.initialize();
-  pigeon.DEBUG = true;
+  pigeon.DEBUG = false;
 
   pigeon.initializeAnimation();
   pigeon.runAnimation();
 
   ButtonElement box = new ButtonElement()..text = "Spawn Birb";
   querySelector("#output").append(box);
-  box.onClick.listen((Event e) {
-    pigeon.createBox(e.x, e.y);
+  box.onClick.listen((MouseEvent e) {
+    pigeon.createBox();
   });
-  pigeon.canvas.onClick.listen((Event e) => pigeon.createBox());
+  pigeon.canvas.onClick.listen((MouseEvent e) => pigeon.createBox(e.client.x, e.client.y));
   pigeon.canvas.style.marginLeft = "auto";
   pigeon.canvas.style.marginRight = "auto";
   pigeon.canvas.style.paddingLeft = "300px";
@@ -184,8 +184,10 @@ class PigeonDemo extends Demo {
       x = 0.0;
       y = 30.0;
     }else {
-      x = x * viewport.scale;
-      y = y * viewport.scale;
+      print("before i scale, x is $x and y is $y");
+      x = (x - canvas.width+3*birb.width/4)/ viewport.scale;
+      y = (canvas.height - y-canvas.height/2+6*birb.height/4) / viewport.scale;
+      print("after i scale, x is $x and y is $y");
     }
     bodyDef.position = new Vector2(x, y);
 
