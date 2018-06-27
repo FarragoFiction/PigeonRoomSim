@@ -7,6 +7,7 @@ import 'package:LoaderLib/Loader.dart';
 
 Future<Null>main() async {
   querySelector('#output').text = 'Your Dart app is running.';
+  //65 x 65
   ImageElement birb = await Loader.getResource("images/pigeon.png");
   PigeonDemo pigeon = new PigeonDemo("HELLOWORLD", birb);
 
@@ -16,6 +17,12 @@ Future<Null>main() async {
 
   pigeon.initializeAnimation();
   pigeon.runAnimation();
+
+  ButtonElement box = new ButtonElement()..text = "Spawn Birb";
+  querySelector("#output").append(box);
+  box.onClick.listen((Event e) {
+    pigeon.createBox();
+  });
 }
 
 
@@ -27,7 +34,7 @@ class PigeonDemo extends Demo {
   void initialize() {
     assert(null != world);
     _createGround();
-    _createBox();
+    createBox();
   }
 
   @override
@@ -71,7 +78,7 @@ class PigeonDemo extends Demo {
     bodies.add(ground);
   }
 
-  void _createBox() {
+  void createBox() {
     // Create shape
     final PolygonShape shape = new PolygonShape();
     shape.setAsBox(3.0, 2.5, new Vector2.zero(), Math.PI / 2);
