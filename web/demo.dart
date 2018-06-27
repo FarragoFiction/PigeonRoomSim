@@ -32,6 +32,7 @@ import 'package:box2d/box2d_browser.dart' hide Timer;
  * An abstract class for any Demo of the Box2D library.
  */
 abstract class Demo {
+    bool DEBUG = true;
     static const int WORLD_POOL_SIZE = 100;
     static const int WORLD_POOL_CONTAINER_SIZE = 10;
 
@@ -39,7 +40,7 @@ abstract class Demo {
     List<Body> bodies = new List<Body>();
 
     /** The default canvas width and height. */
-    static const int CANVAS_WIDTH = 900;
+    static const int CANVAS_WIDTH = 800;
     static const int CANVAS_HEIGHT = 600;
 
     /** Scale of the viewport. */
@@ -102,7 +103,7 @@ abstract class Demo {
 
         // Clear the animation panel and draw new frame.
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
-        world.drawDebugData();
+        if(DEBUG)world.drawDebugData();
         frameCount++;
 
         window.requestAnimationFrame(step);

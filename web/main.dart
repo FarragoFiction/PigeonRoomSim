@@ -3,7 +3,6 @@ import 'dart:html';
 import 'dart:math' as Math;
 import 'demo.dart';
 import 'package:box2d/box2d.dart';
-import 'package:LoaderLib/Loader.dart';
 import "package:DollLibCorrect/DollRenderer.dart";
 
 int type = 113;
@@ -17,11 +16,13 @@ Future<Null>main() async {
   querySelector('#output').text = 'Your Dart app is running.';
   //65 x 65
   birbs = await initBirbs();
-  PigeonDemo pigeon = new PigeonDemo("HELLOWORLD", birbs);
+  ImageElement bg = await Loader.getResource("images/58.png");
+  PigeonDemo pigeon = new PigeonDemo("HELLOWORLD", birbs, bg);
 
 
 
   pigeon.initialize();
+  pigeon.DEBUG = false;
 
   pigeon.initializeAnimation();
   pigeon.runAnimation();
@@ -31,6 +32,12 @@ Future<Null>main() async {
   box.onClick.listen((Event e) {
     pigeon.createBox();
   });
+  pigeon.canvas.onClick.listen((Event e) => pigeon.createBox());
+  pigeon.canvas.style.marginLeft = "auto";
+  pigeon.canvas.style.marginRight = "auto";
+  pigeon.canvas.style.paddingLeft = "300px";
+  pigeon.canvas.style.paddingRight = "300px";
+
 }
 
 //http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
@@ -58,9 +65,11 @@ String getParameterByName(String name, [String url]) {
 Future<List<CanvasElement>> initBirbs() async {
   List<CanvasElement> ret = new List<CanvasElement>();
   DivElement stats = new DivElement()..text = "Loading Dolls of type $type";
+  stats.style.color = "white";
   querySelector("#output").append(stats);
   //don't spend too long doing this
   DateTime startTime = new DateTime.now();
+
   for(int i = 0; i<13; i++) {
     Doll doll = Doll.randomDollOfType(type);
     CanvasElement canvas = new CanvasElement(width:doll.width, height:doll.height);
@@ -83,7 +92,8 @@ Future<List<CanvasElement>> initBirbs() async {
 
 class PigeonDemo extends Demo {
   List<CanvasElement> birbs;
-  PigeonDemo(String name, List<CanvasElement> this.birbs) : super(name);
+  ImageElement bg;
+  PigeonDemo(String name, List<CanvasElement> this.birbs, ImageElement this.bg) : super(name);
 
 
   void initialize() {
@@ -95,6 +105,7 @@ class PigeonDemo extends Demo {
   @override
   void step(num timestamp) {
     super.step(timestamp);
+    canvas.context2D.drawImage(bg, 0,0);
     // ignore: conflicting_dart_import
     for(Body b in bodies) {
       if(b.getType() == BodyType.DYNAMIC) {
