@@ -97,6 +97,8 @@ Future<List<CanvasElement>> initBirbs() async {
 
 class PigeonDemo extends Demo {
   List<CanvasElement> birbs;
+  Random rand = new Random();
+  CanvasElement nextBirb;
   // ignore: conflicting_dart_import
   Map<Body, CanvasElement> birbBodyPairs = new Map<Body, CanvasElement>();
   ImageElement bg;
@@ -155,15 +157,16 @@ class PigeonDemo extends Demo {
   void processDestruction() {
     for(Fixture f in toDestroy) {
       Body b  = f.getBody();
+      print("destroying body $b");
       world.destroyBody(b);
       //f.destroy();
       bodies.remove(b);
     }
   }
 
-  CanvasElement getRandomBirb(int seed) {
-    Random rand = new Random(seed);
-    return rand.pickFrom(birbs);
+  void setNextBirb() {
+    print("setting next birb");
+    nextBirb =  rand.pickFrom(birbs);
   }
 
   void _createGround() {
@@ -193,8 +196,10 @@ class PigeonDemo extends Demo {
 
   void createBox([double x, double y]) {
     // Create shape
+    print("creating box at $x, $y");
     final CircleShape shape = new CircleShape();
-    CanvasElement birb = getRandomBirb(bodies.length);
+    if(nextBirb == null)     setNextBirb();
+    CanvasElement birb = nextBirb;
     double width = 3.0;
     double height = 2.5;
     if(viewport != null) {
@@ -226,19 +231,23 @@ class PigeonDemo extends Demo {
 
     // Create body and fixture from definitions
     final Body fallingBox = world.createBody(bodyDef);
-    fallingBox.createFixtureFromFixtureDef(activeFixtureDef);
+    //could be null if thing is 'locked'
+    if(fallingBox != null) {
+      fallingBox.createFixtureFromFixtureDef(activeFixtureDef);
 
-    // Add to list
-    birbBodyPairs[fallingBox] = birb;
-    bodies.add(fallingBox);
-    showPreviewBirb();
+      // Add to list
+      birbBodyPairs[fallingBox] = birb;
+      bodies.add(fallingBox);
+      setNextBirb();
+      showPreviewBirb();
+    }
   }
 
   void showPreviewBirb() {
     if(previewCanvas == null) {
       createNextBirbPreview();
     }
-    CanvasElement preview = getRandomBirb(bodies.length);
+    CanvasElement preview = nextBirb;
     previewCanvas.width = preview.width;
     previewCanvas.height = preview.height;
     previewCanvas.context2D.drawImage(preview,0,0);
