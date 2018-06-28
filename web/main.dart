@@ -22,6 +22,7 @@ Future<Null>main() async {
 
 
 
+
   pigeon.initialize();
   pigeon.DEBUG = true;
 
@@ -29,7 +30,7 @@ Future<Null>main() async {
   pigeon.runAnimation();
 
   ButtonElement box = new ButtonElement()..text = "Spawn Birb";
-  querySelector("#output").append(box);
+  querySelector("#world-step").append(box);
   box.onClick.listen((MouseEvent e) {
     pigeon.createBox();
   });
@@ -96,9 +97,12 @@ Future<List<CanvasElement>> initBirbs() async {
 
 class PigeonDemo extends Demo {
   List<CanvasElement> birbs;
+  // ignore: conflicting_dart_import
+  Map<Body, CanvasElement> birbBodyPairs = new Map<Body, CanvasElement>();
   ImageElement bg;
   // ignore: conflicting_dart_import
   List<Fixture> toDestroy = new List<Fixture>();
+  CanvasElement previewCanvas;
 
   PigeonDemo(String name, List<CanvasElement> this.birbs, ImageElement this.bg) : super(name);
 
@@ -111,6 +115,19 @@ class PigeonDemo extends Demo {
     createBox();
   }
 
+  void createNextBirbPreview() {
+    if(previewCanvas == null) {
+      Element div = querySelector("#world-step");
+      DivElement birbFacts = new DivElement();
+      birbFacts.style.color = "white";
+      birbFacts.text = "Your Next Doll Will Probably Be: ";
+      previewCanvas =
+      new CanvasElement(width: birbs.first.width, height: birbs.first.height);
+      div.append(birbFacts);
+      birbFacts.append(previewCanvas);
+    }
+  }
+
   @override
   void step(num timestamp) {
     processDestruction();
@@ -119,7 +136,7 @@ class PigeonDemo extends Demo {
     // ignore: conflicting_dart_import
     for(Body b in bodies) {
       if(b.getType() == BodyType.DYNAMIC) {
-        CanvasElement birb = getRandomBirb(bodies.indexOf(b));
+        CanvasElement birb = birbBodyPairs[b];
         //looks like 0,0 is in the center, and y is inverted. viewport.scale handles coordinate conversion
         num x = b.position.x * viewport.scale + canvas.width / 2 -
             birb.width / 2;
@@ -212,7 +229,19 @@ class PigeonDemo extends Demo {
     fallingBox.createFixtureFromFixtureDef(activeFixtureDef);
 
     // Add to list
+    birbBodyPairs[fallingBox] = birb;
     bodies.add(fallingBox);
+    showPreviewBirb();
+  }
+
+  void showPreviewBirb() {
+    if(previewCanvas == null) {
+      createNextBirbPreview();
+    }
+    CanvasElement preview = getRandomBirb(bodies.length);
+    previewCanvas.width = preview.width;
+    previewCanvas.height = preview.height;
+    previewCanvas.context2D.drawImage(preview,0,0);
   }
 }
 
@@ -227,8 +256,8 @@ class PigeonListener extends ContactListener {
     Body a = contact.fixtureA.getBody();
     Body b = contact.fixtureB.getBody();
     if(a.getType() == BodyType.DYNAMIC && b.getType() == BodyType.DYNAMIC) {
-      CanvasElement dollA = demo.getRandomBirb(demo.bodies.indexOf(a));
-      CanvasElement dollB = demo.getRandomBirb(demo.bodies.indexOf(b));
+      CanvasElement dollA = demo.birbBodyPairs[a];
+      CanvasElement dollB = demo.birbBodyPairs[b];
       if(dollA != null && dollA == dollB) {
         demo.toDestroy.add(contact.fixtureA);
         demo.toDestroy.add(contact.fixtureB);
@@ -251,3 +280,4 @@ class PigeonListener extends ContactListener {
     // TODO: implement preSolve
   }
 }
+
