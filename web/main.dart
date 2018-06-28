@@ -138,6 +138,7 @@ class PigeonDemo extends Demo {
   void processDestruction() {
     for(Fixture f in toDestroy) {
       Body b  = f.getBody();
+      world.destroyBody(b);
       //f.destroy();
       bodies.remove(b);
     }
