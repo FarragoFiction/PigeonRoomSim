@@ -24,7 +24,7 @@ Future<Null>main() async {
 
 
   pigeon.initialize();
-  pigeon.DEBUG = true;
+  pigeon.DEBUG = false;
 
   pigeon.initializeAnimation();
   pigeon.runAnimation();
@@ -132,7 +132,6 @@ class PigeonDemo extends Demo {
 
   @override
   void step(num timestamp) {
-    processDestruction();
     super.step(timestamp);
    if(!DEBUG) canvas.context2D.drawImage(bg, 0,0);
     // ignore: conflicting_dart_import
@@ -151,6 +150,7 @@ class PigeonDemo extends Demo {
         canvas.context2D.restore();
       }
     }
+    processDestruction();
   }
 
   //is this enough?
@@ -162,6 +162,7 @@ class PigeonDemo extends Demo {
       //f.destroy();
       bodies.remove(b);
     }
+    toDestroy.clear();
   }
 
   void setNextBirb() {
